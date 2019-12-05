@@ -1,5 +1,5 @@
 <template>
-  <div class="container column is-10">
+  <div class="container column is-fullheight-with-navbar">
     <div class="field">
       <label class="label">Host</label>
       <div class="control">
@@ -8,7 +8,7 @@
             http://
           </p>
           <p class="control has-icons-left has-icons-right">
-            <input
+            <label for="server_url"></label><input
               class="input"
               type="text"
               placeholder="example.local/upload"

@@ -1,11 +1,13 @@
 <template>
   <div id="app">
-    <Title />
-    <div class="main-content columns is-fullheight">
-      <Menu />
-      <Body />
+      <Title />
+      <div class="main-content columns is-fullheight">
+        <Menu />
+        <div class="container column is-10">
+          <Body />
+        </div>
+      </div>
     </div>
-  </div>
 </template>
 
 <script>
