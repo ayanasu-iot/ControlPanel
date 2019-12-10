@@ -1,27 +1,25 @@
 <template>
   <div class="container column is-fullheight-with-navbar">
-    <div class="field">
-      <label class="label">Host</label>
-      <div class="control">
-        <div class="field has-addons">
-          <p class="button is-static">
-            http://
-          </p>
-          <p class="control has-icons-left has-icons-right">
-            <label for="server_url"></label><input
+    <label class="label">Host</label>
+    <div class="control">
+      <div class="field has-addons">
+        <p class="button is-static">
+          http://
+        </p>
+        <p class="control has-icons-left">
+          <label>
+            <input
               class="input"
               type="text"
               placeholder="example.local/upload"
-              id="server_url"
+              v-model="host"
             />
-            <span class="icon is-small is-left">
-              <i class="fas fa-link"></i>
-            </span>
-            <span class="icon is-small is-right">
-              <i class="fas fa-link"></i>
-            </span>
-          </p>
-        </div>
+          </label>
+          <span class="icon is-small is-left">
+            <i class="fas fa-link"></i>
+          </span>
+        </p>
+        <button v-on:click="addHosts()" class="button info">Add</button>
       </div>
     </div>
 
@@ -71,6 +69,8 @@ export default {
       headers: {
         'Access-Control-Allow-Origin': '*'
       },
+      hosts: [],
+      host: '',
       upload_status: 'Status'
     }
   },
@@ -81,21 +81,30 @@ export default {
       this.file = files[0]
       this.file_name = files[0].name
     },
-    fileUpload: function() {
-      const url = 'http://' + document.getElementById('server_url').value
+    async postData(address, formData) {
+      try {
+        await axios.post(`http://${address.text}:5000/upload`, formData, {
+          headers: {
+            'content-type': 'multipart/form-data'
+          }
+        })
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log(e.toString())
+      }
+    },
+    async fileUpload() {
+      const urls = this.hosts
       const formData = new FormData()
       formData.append('file', this.file)
-      if (url !== 'http://') {
-        axios
-          .post(url, formData, {
-            headers: {
-              'content-type': 'multipart/form-data'
-            }
-          })
-          .then(function(response) {
-            this.upload_status = response.status.toString()
-          })
-      }
+      await Promise.all(urls.map(address => this.postData(address, formData)))
+    },
+    addHosts: function() {
+      const host = this.host
+      this.hosts.push({
+        text: host.toString()
+      })
+      this.host = ''
     }
   }
 }
