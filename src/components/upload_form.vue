@@ -55,6 +55,21 @@
         {{ this.upload_status }}
       </p>
     </div>
+
+    <div class="container column is-fullheight-with-navbar">
+      <button
+        v-on:click="setStatus(true)"
+        class="button is-success"
+      >
+        開始
+      </button>
+      <button
+        v-on:click="setStatus(false)"
+        class="button is-danger"
+      >
+        停止
+      </button>
+    </div>
   </div>
 </template>
 
@@ -71,7 +86,8 @@ export default {
       },
       hosts: [],
       host: '',
-      upload_status: 'Status'
+      upload_status: 'Status',
+      ledtest_status: true
     }
   },
   methods: {
@@ -83,11 +99,15 @@ export default {
     },
     async postData(address, formData) {
       try {
-        await axios.post(`http://${address.text}:5000/upload`, formData, {
-          headers: {
-            'content-type': 'multipart/form-data'
+        await axios.post(
+          `http://${address.text}:5000/api/v1/upload/`,
+          formData,
+          {
+            headers: {
+              'content-type': 'multipart/form-data'
+            }
           }
-        })
+        )
       } catch (e) {
         // eslint-disable-next-line no-console
         console.log(e.toString())
@@ -97,7 +117,9 @@ export default {
       const urls = this.hosts
       const formData = new FormData()
       formData.append('file', this.file)
-      await Promise.all(urls.map(address => this.postData(address, formData)))
+      if(!this.ledtest_status) {
+        await Promise.all(urls.map(address => this.postData(address, formData)))
+      }
     },
     addHosts: function() {
       const host = this.host
@@ -105,8 +127,39 @@ export default {
         text: host.toString()
       })
       this.host = ''
+    },
+    async changeAnimationStatus(address, status = false) {
+      await axios.get(`http://${address.text}:5000/api/v1/animation`, {
+        params: {
+          status: status
+        }
+      })
+    },
+    async setStatus(status = false) {
+      const urls = this.hosts
+      if (status) {
+        this.ledtest_status = true
+        try {
+          await Promise.all(
+            urls.map(address => this.changeAnimationStatus(address, true))
+          )
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log(e.toString())
+        }
+      } else if (!status) {
+        this.ledtest_status = false
+        try {
+          await Promise.all(
+            urls.map(address => this.changeAnimationStatus(address, false))
+          )
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log(e.toString())
+        }
+      }
     }
-  }
+  },
 }
 </script>
 
