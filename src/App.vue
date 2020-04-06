@@ -5,7 +5,7 @@
         <Menu />
         <div class="container column is-10">
           <Body />
-          <Gallery />
+<!--          <Gallery />-->
         </div>
       </div>
     </div>
@@ -15,7 +15,7 @@
 import Title from './components/title_header.vue'
 import Body from './components/upload_form.vue'
 import Menu from './components/side_menu.vue'
-import Gallery from './components/gallery.vue'
+// import Gallery from './components/gallery.vue'
 
 export default {
   name: 'app',
@@ -23,7 +23,7 @@ export default {
     Title,
     Body,
     Menu,
-    Gallery
+    // Gallery
   }
 }
 </script>

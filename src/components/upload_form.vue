@@ -11,7 +11,7 @@
             <input
               class="input"
               type="text"
-              placeholder="example.local/upload"
+              placeholder="example.local"
               v-model="host"
             />
           </label>
@@ -100,7 +100,7 @@ export default {
     async postData(address, formData) {
       try {
         await axios.post(
-          `http://${address.text}:5000/api/v1/upload/`,
+          `http://${address.text}:5000/api/v1/upload`,
           formData,
           {
             headers: {
@@ -115,6 +115,8 @@ export default {
     },
     async fileUpload() {
       const urls = this.hosts
+      // eslint-disable-next-line no-console
+      console.log(this.ledtest_status.toString())
       const formData = new FormData()
       formData.append('file', this.file)
       if(!this.ledtest_status) {
@@ -126,6 +128,8 @@ export default {
       this.hosts.push({
         text: host.toString()
       })
+      // eslint-disable-next-line no-console
+      console.log(host.toString())
       this.host = ''
     },
     async changeAnimationStatus(address, status = false) {
