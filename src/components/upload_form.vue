@@ -1,27 +1,25 @@
 <template>
   <div class="container column is-fullheight-with-navbar">
-    <div class="field">
-      <label class="label">Host</label>
-      <div class="control">
-        <div class="field has-addons">
-          <p class="button is-static">
-            http://
-          </p>
-          <p class="control has-icons-left has-icons-right">
-            <label for="server_url"></label><input
+    <label class="label">Host</label>
+    <div class="control">
+      <div class="field has-addons">
+        <p class="button is-static">
+          http://
+        </p>
+        <p class="control has-icons-left">
+          <label>
+            <input
               class="input"
               type="text"
-              placeholder="example.local/upload"
-              id="server_url"
+              placeholder="example.local"
+              v-model="host"
             />
-            <span class="icon is-small is-left">
-              <i class="fas fa-link"></i>
-            </span>
-            <span class="icon is-small is-right">
-              <i class="fas fa-link"></i>
-            </span>
-          </p>
-        </div>
+          </label>
+          <span class="icon is-small is-left">
+            <i class="fas fa-link"></i>
+          </span>
+        </p>
+        <button v-on:click="addHosts()" class="button info">Add</button>
       </div>
     </div>
 
@@ -57,6 +55,21 @@
         {{ this.upload_status }}
       </p>
     </div>
+
+    <div class="container column is-fullheight-with-navbar">
+      <button
+        v-on:click="setStatus(true)"
+        class="button is-success"
+      >
+        開始
+      </button>
+      <button
+        v-on:click="setStatus(false)"
+        class="button is-danger"
+      >
+        停止
+      </button>
+    </div>
   </div>
 </template>
 
@@ -71,7 +84,10 @@ export default {
       headers: {
         'Access-Control-Allow-Origin': '*'
       },
-      upload_status: 'Status'
+      hosts: [],
+      host: '',
+      upload_status: 'Status',
+      ledtest_status: true
     }
   },
   methods: {
@@ -81,23 +97,73 @@ export default {
       this.file = files[0]
       this.file_name = files[0].name
     },
-    fileUpload: function() {
-      const url = 'http://' + document.getElementById('server_url').value
-      const formData = new FormData()
-      formData.append('file', this.file)
-      if (url !== 'http://') {
-        axios
-          .post(url, formData, {
+    async postData(address, formData) {
+      try {
+        await axios.post(
+          `http://${address.text}:5000/api/v1/upload`,
+          formData,
+          {
             headers: {
               'content-type': 'multipart/form-data'
             }
-          })
-          .then(function(response) {
-            this.upload_status = response.status.toString()
-          })
+          }
+        )
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log(e.toString())
+      }
+    },
+    async fileUpload() {
+      const urls = this.hosts
+      // eslint-disable-next-line no-console
+      console.log(this.ledtest_status.toString())
+      const formData = new FormData()
+      formData.append('file', this.file)
+      if(!this.ledtest_status) {
+        await Promise.all(urls.map(address => this.postData(address, formData)))
+      }
+    },
+    addHosts: function() {
+      const host = this.host
+      this.hosts.push({
+        text: host.toString()
+      })
+      // eslint-disable-next-line no-console
+      console.log(host.toString())
+      this.host = ''
+    },
+    async changeAnimationStatus(address, status = false) {
+      await axios.get(`http://${address.text}:5000/api/v1/animation`, {
+        params: {
+          status: status
+        }
+      })
+    },
+    async setStatus(status = false) {
+      const urls = this.hosts
+      if (status) {
+        this.ledtest_status = true
+        try {
+          await Promise.all(
+            urls.map(address => this.changeAnimationStatus(address, true))
+          )
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log(e.toString())
+        }
+      } else if (!status) {
+        this.ledtest_status = false
+        try {
+          await Promise.all(
+            urls.map(address => this.changeAnimationStatus(address, false))
+          )
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log(e.toString())
+        }
       }
     }
-  }
+  },
 }
 </script>
 
